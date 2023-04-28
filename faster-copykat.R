@@ -17,6 +17,7 @@ Rcpp::sourceCpp('./helper_file.cpp')
 ## modified copykat::copykat 
 
 
+
 rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=5,LOW.DR=0.05, UP.DR=0.1, win.size=25, norm.cell.names="", KS.cut=0.1, sam.name="", distance="euclidean", output.seg="FALSE", plot.genes="TRUE", genome="hg20", n.cores=1){
   
   start_time <- Sys.time()
@@ -25,8 +26,8 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
   
   print("running copykat modified v1.0.8.-- Using Rcpp and Rcppcluster-- no plotting")
   
-  print("step1: read and filter data ...")
-  print(paste(nrow(rawmat), " genes, ", ncol(rawmat), " cells in raw data", sep=""))
+  print("step 1: read and filter data ...")
+  #print(paste(nrow(rawmat), " genes, ", ncol(rawmat), " cells in raw data", sep=""))
   
   #genes.raw <- apply(rawmat, 2, function(x)(sum(x>0)))
   genes.raw <-apply_cpp_col(rawmat)
@@ -34,7 +35,7 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
   if(sum(genes.raw> 200)==0) stop("none cells have more than 200 genes")
   if(sum(genes.raw<100)>1){
     rawmat <- rawmat[, -which(genes.raw< 200)]
-    print(paste("filtered out ", sum(genes.raw<=200), " cells with less than 200 genes; remaining ", ncol(rawmat), " cells", sep=""))
+    #print(paste("filtered out ", sum(genes.raw<=200), " cells with less than 200 genes; remaining ", ncol(rawmat), " cells", sep=""))
   }
   
   #der<- apply(rawmat,1,function(x)(sum(x>0)))/ncol(rawmat)
@@ -42,14 +43,14 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
   
   if(sum(der>LOW.DR)>=1){
     rawmat <- rawmat[which(der > LOW.DR), ]; 
-    print(paste(nrow(rawmat)," genes past LOW.DR filtering", sep=""))
+    #print(paste(nrow(rawmat)," genes past LOW.DR filtering", sep=""))
   }
   
   WNS1 <- "data quality is ok"
   if(nrow(rawmat) < 7000){
     WNS1 <- "low data quality"
     UP.DR<- LOW.DR
-    print("WARNING: low data quality; assigned LOW.DR to UP.DR...")
+    #print("WARNING: low data quality; assigned LOW.DR to UP.DR...")
   }
   
   
@@ -59,7 +60,7 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
   
   anno.mat <- anno.mat[order(as.numeric(anno.mat$abspos), decreasing = FALSE),]
   
-  print(paste(nrow(anno.mat)," genes annotated", sep=""))
+  #print(paste(nrow(anno.mat)," genes annotated", sep=""))
   
   ### module 3 removing genes that are involved in cell cycling
   
@@ -70,7 +71,7 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
       anno.mat <- anno.mat[-toRev, ]
     }
   }
-  print(paste(nrow(anno.mat)," genes after rm cell cycle genes", sep=""))
+  #print(paste(nrow(anno.mat)," genes after rm cell cycle genes", sep=""))
   ### secondary filtering
   ToRemov2 <- NULL
   
@@ -94,7 +95,7 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
     anno.mat <-anno.mat[, -which(colnames(anno.mat) %in% ToRemov2)]
   }
   
-  print(paste("filtered out ", length(ToRemov2), " cells with less than ",ngene.chr, " genes per chr", sep=""))
+  #print(paste("filtered out ", length(ToRemov2), " cells with less than ",ngene.chr, " genes per chr", sep=""))
   rawmat3 <- data.matrix(anno.mat[, 8:ncol(anno.mat)])
   norm.mat<- log(sqrt(rawmat3)+sqrt(rawmat3+1))
   
@@ -103,7 +104,7 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
   
   colnames(norm.mat) <-  colnames(rawmat3)
   
-  print(paste("A total of ", ncol(norm.mat), " cells, ", nrow(norm.mat), " genes after preprocessing", sep=""))
+  #print(paste("A total of ", ncol(norm.mat), " cells, ", nrow(norm.mat), " genes after preprocessing", sep=""))
   
   ##smooth data
   
@@ -126,17 +127,17 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
   
   print("step 4: measuring baselines ...")
   
-  print(paste(length(norm.cell.names), "normal cells provided", sep=""))
+  #print(paste(length(norm.cell.names), "normal cells provided", sep=""))
   NNN <- length(colnames(norm.mat.smooth)[which(colnames(norm.mat.smooth) %in% norm.cell.names)])
-  print(paste(NNN, " known normal cells found in dataset", sep=""))
+  #print(paste(NNN, " known normal cells found in dataset", sep=""))
   
   if (NNN==0) stop("known normal cells provided; however none existing in testing dataset")
-  print("run with known normal...")
+  #print("run with known normal...")
   
   #basel <- apply(norm.mat.smooth[, which(colnames(norm.mat.smooth) %in% norm.cell.names)],1,median);
   basel =apply_cpp_row_basel(norm.mat.smooth[, which(colnames(norm.mat.smooth) %in% norm.cell.names)])
   
-  print("baseline is from known input")
+  #print("baseline is from known input")
   
   #d <- parallelDist::parDist(t(norm.mat.smooth),threads =n.cores, method="euclidean") ##use smooth and segmented data to detect intra-normal cells
   
@@ -191,10 +192,10 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
   
   if(length(ToRemov3)>0){
     norm.mat.relat <-norm.mat.relat[, -which(colnames(norm.mat.relat) %in% ToRemov3)]
-    print(paste("filtered out ", length(ToRemov3), " cells with less than ",ngene.chr, " genes per chr", sep=""))
+    #print(paste("filtered out ", length(ToRemov3), " cells with less than ",ngene.chr, " genes per chr", sep=""))
   }
   
-  print(paste("final segmentation: ", nrow(norm.mat.relat), " genes; ", ncol(norm.mat.relat), " cells", sep=""))
+  #print(paste("final segmentation: ", nrow(norm.mat.relat), " genes; ", ncol(norm.mat.relat), " cells", sep=""))
   
   CL <- CL[which(names(CL) %in% colnames(norm.mat.relat))]
   CL <- CL[order(match(names(CL), colnames(norm.mat.relat)))]
@@ -208,14 +209,14 @@ rcpp_copykat <- function(rawmat=rawdata, id.type="S", cell.line="no", ngene.chr=
   
   
   if(length(results$breaks)<25){
-    print("too few breakpoints detected; decreased KS.cut to 50%")
+    #print("too few breakpoints detected; decreased KS.cut to 50%")
     results <- rcpp_CNA.MCMC(clu=CL, fttmat=norm.mat.relat, bins=win.size, cut.cor = 0.5*KS.cut, n.cores=n.cores)
   }
   
   
   
   if(length(results$breaks)<25){
-    print("too few breakpoints detected; decreased KS.cut to 75%")
+    #print("too few breakpoints detected; decreased KS.cut to 75%")
     results <- rcpp_CNA.MCMC(clu=CL, fttmat=norm.mat.relat, bins=win.size, cut.cor = 0.5*0.5*KS.cut, n.cores=n.cores)
   }
   
