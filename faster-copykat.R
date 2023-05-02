@@ -10,9 +10,6 @@
 # rcpp_copykat,rcpp_CNA.MCMC,rcpp_convert.all.bins.hg20,rcpp_convert.all.bins.mm10
 #
 
-## modified specific lines of copykat base code for more efficient run time
-Rcpp::sourceCpp('./helper_file.cpp')
-
 
 ## modified copykat::copykat 
 
