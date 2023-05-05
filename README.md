@@ -1,2 +1,2 @@
 # copykat_faster
-Modified functions from navinlabcode / copykat for more efficient run time
+Modified functions from [navinlabcode/copykat](https://github.com/navinlabcode/copykat) for more efficient run time
